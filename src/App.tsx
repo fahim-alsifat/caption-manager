@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Sidebar, PostEditor } from './components';
-import type { Post, FilterType, AppState } from './types';
+import type { Post, FilterType, AppState, PostStatus } from './types';
 import { storage, generateId } from './utils/storage';
 import { useKeyboardShortcuts } from './hooks/hooks';
 import './App.css';
@@ -84,15 +84,17 @@ function App() {
   const handleToggleStatus = useCallback((id: string) => {
     setState(prev => ({
       ...prev,
-      posts: prev.posts.map(post =>
-        post.id === id
-          ? {
-            ...post,
-            status: post.status === 'done' ? 'pending' : 'done',
-            updatedAt: new Date().toISOString()
-          }
-          : post
-      )
+      posts: prev.posts.map(post => {
+        if (post.id !== id) return post;
+        const nextStatus = post.status === 'pending' ? 'working'
+          : post.status === 'working' ? 'done'
+            : 'pending';
+        return {
+          ...post,
+          status: nextStatus,
+          updatedAt: new Date().toISOString()
+        };
+      })
     }));
   }, []);
 
@@ -137,6 +139,16 @@ function App() {
         onDelete={handleDeletePost}
         onTogglePin={handleTogglePin}
         onToggleStatus={handleToggleStatus}
+        onChangeStatus={(id: string, status: PostStatus) => {
+          setState(prev => ({
+            ...prev,
+            posts: prev.posts.map(post =>
+              post.id === id
+                ? { ...post, status, updatedAt: new Date().toISOString() }
+                : post
+            )
+          }));
+        }}
       />
     </div>
   );

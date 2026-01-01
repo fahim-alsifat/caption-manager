@@ -614,6 +614,223 @@
 }
 
 /* ========================
+   Status Dropdown
+   ======================== */
+.status-dropdown {
+    position: relative;
+}
+
+.status-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.status-btn svg {
+    flex-shrink: 0;
+}
+
+.status-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: var(--space-1);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    z-index: 100;
+    min-width: 140px;
+    animation: slideDown 0.15s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.status-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+}
+
+.status-option:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.status-option.active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.status-option.active svg {
+    stroke: white;
+}
+
+/* Status button variants */
+.action-btn.status-btn.pending {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+.action-btn.status-btn.pending svg {
+    stroke: var(--text-muted);
+}
+
+.action-btn.status-btn.working {
+    background: rgba(255, 149, 0, 0.15);
+    border-color: var(--accent-warning);
+    color: var(--accent-warning);
+}
+
+.action-btn.status-btn.working svg {
+    stroke: var(--accent-warning);
+}
+
+.action-btn.status-btn.done {
+    background: var(--accent-success);
+    border-color: var(--accent-success);
+    color: white;
+}
+
+.action-btn.status-btn.done svg {
+    stroke: white;
+}
+
+/* Status badge variants in sidebar */
+.status-badge.working {
+    color: var(--accent-warning);
+}
+
+.status-badge.working svg {
+    stroke: var(--accent-warning);
+}
+
+.status-badge.pending svg {
+    stroke: var(--text-muted);
+}
+
+.status-badge.done svg {
+    stroke: var(--accent-success);
+}
+
+.post-card.selected .status-badge.working svg {
+    stroke: #fbbf24;
+}
+
+/* ========================
+   Editor Toolbar
+   ======================== */
+.editor-toolbar {
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-2) 0;
+    margin-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.toolbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.toolbar-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--accent-primary);
+}
+
+.toolbar-btn svg {
+    stroke: currentColor;
+}
+
+/* ========================
+   Filter Tab Colors
+   ======================== */
+.filter-tab.filter-pending.active {
+    background: var(--text-muted);
+}
+
+.filter-tab.filter-working.active {
+    background: var(--accent-warning);
+}
+
+.filter-tab.filter-done.active {
+    background: var(--accent-success);
+}
+
+/* ========================
+   SVG Icon Alignment
+   ======================== */
+.app-icon svg,
+.theme-toggle svg,
+.search-icon svg,
+.empty-icon svg,
+.pin-indicator svg,
+.empty-editor-icon svg {
+    display: block;
+}
+
+.app-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pin-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-right: var(--space-1);
+}
+
+.pin-indicator svg {
+    fill: var(--accent-warning);
+}
+
+.empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.empty-editor-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+/* ========================
    Responsive
    ======================== */
 @media (max-width: 768px) {
