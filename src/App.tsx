@@ -1,13 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Sidebar, PostEditor } from './components';
 import { SharedView } from './components/SharedView';
+import { AuthPages } from './components/AuthPages';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import type { Post, FilterType, AppState, PostStatus } from './types';
 import { storage } from './utils/storage';
 import { postsApi } from './utils/api';
 import { useKeyboardShortcuts } from './hooks/hooks';
 import './App.css';
 
-function App() {
+function MainApp() {
+  const { isAuthenticated, isLoading: authLoading, logout, user } = useAuth();
+
   const [state, setState] = useState<AppState>(() => ({
     posts: [],
     selectedPostId: null,
@@ -28,9 +32,13 @@ function App() {
     storage.saveTheme(state.theme);
   }, [state.theme]);
 
-  // Load posts from API on mount
+  // Load posts from API on mount (only if authenticated)
   useEffect(() => {
     if (isSharedView) return; // Don't load all posts for shared view
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
 
     const loadPosts = async () => {
       try {
@@ -46,7 +54,7 @@ function App() {
       }
     };
     loadPosts();
-  }, [isSharedView]);
+  }, [isSharedView, isAuthenticated]);
 
   const selectedPost = state.posts.find(p => p.id === state.selectedPostId) || null;
 
@@ -74,26 +82,15 @@ function App() {
     setState(prev => ({ ...prev, selectedPostId: id }));
   }, []);
 
-  const handleSavePost = useCallback(async (updates: Partial<Post>) => {
-    if (!updates.id) return;
-
-    // Optimistic update
-    setState(prev => ({
-      ...prev,
-      posts: prev.posts.map(post =>
-        post.id === updates.id
-          ? { ...post, ...updates, updatedAt: new Date().toISOString() }
-          : post
-      )
-    }));
-
+  const handleSavePost = useCallback(async (updatedPost: Post) => {
     try {
-      await postsApi.update(updates.id, updates);
+      const saved = await postsApi.update(updatedPost.id, updatedPost);
+      setState(prev => ({
+        ...prev,
+        posts: prev.posts.map(post => post.id === saved.id ? saved : post)
+      }));
     } catch (err) {
       console.error('Save post error:', err);
-      // Reload posts on error
-      const posts = await postsApi.getAll();
-      setState(prev => ({ ...prev, posts }));
     }
   }, []);
 
@@ -102,7 +99,7 @@ function App() {
       await postsApi.delete(id);
       setState(prev => ({
         ...prev,
-        posts: prev.posts.filter(post => post.id !== id),
+        posts: prev.posts.filter(p => p.id !== id),
         selectedPostId: prev.selectedPostId === id ? null : prev.selectedPostId
       }));
     } catch (err) {
@@ -112,46 +109,34 @@ function App() {
 
   const handleTogglePin = useCallback(async (id: string) => {
     const post = state.posts.find(p => p.id === id);
-    if (!post) return;
-
-    const newIsPinned = !post.isPinned;
-    setState(prev => ({
-      ...prev,
-      posts: prev.posts.map(p =>
-        p.id === id
-          ? { ...p, isPinned: newIsPinned, updatedAt: new Date().toISOString() }
-          : p
-      )
-    }));
-
-    try {
-      await postsApi.update(id, { isPinned: newIsPinned });
-    } catch (err) {
-      console.error('Toggle pin error:', err);
+    if (post) {
+      try {
+        const updated = await postsApi.update(id, { isPinned: !post.isPinned });
+        setState(prev => ({
+          ...prev,
+          posts: prev.posts.map(p => p.id === id ? updated : p)
+        }));
+      } catch (err) {
+        console.error('Toggle pin error:', err);
+      }
     }
   }, [state.posts]);
 
   const handleToggleStatus = useCallback(async (id: string) => {
     const post = state.posts.find(p => p.id === id);
-    if (!post) return;
-
-    const nextStatus: PostStatus = post.status === 'pending' ? 'working'
-      : post.status === 'working' ? 'done'
-        : 'pending';
-
-    setState(prev => ({
-      ...prev,
-      posts: prev.posts.map(p =>
-        p.id === id
-          ? { ...p, status: nextStatus, updatedAt: new Date().toISOString() }
-          : p
-      )
-    }));
-
-    try {
-      await postsApi.update(id, { status: nextStatus });
-    } catch (err) {
-      console.error('Toggle status error:', err);
+    if (post) {
+      const statusOrder: PostStatus[] = ['pending', 'working', 'done'];
+      const nextIndex = (statusOrder.indexOf(post.status) + 1) % 3;
+      const newStatus = statusOrder[nextIndex];
+      try {
+        const updated = await postsApi.update(id, { status: newStatus });
+        setState(prev => ({
+          ...prev,
+          posts: prev.posts.map(p => p.id === id ? updated : p)
+        }));
+      } catch (err) {
+        console.error('Toggle status error:', err);
+      }
     }
   }, [state.posts]);
 
@@ -170,15 +155,31 @@ function App() {
     }));
   }, []);
 
-  // Keyboard shortcuts
   useKeyboardShortcuts({
-    'mod+n': handleNewPost,
-    'mod+d': () => state.selectedPostId && handleToggleStatus(state.selectedPostId),
+    onNewPost: handleNewPost,
+    onToggleTheme: handleToggleTheme
   });
 
   // Render shared view if on share URL
   if (isSharedView && shareLinkId) {
     return <SharedView linkId={shareLinkId} theme={state.theme} onToggleTheme={handleToggleTheme} />;
+  }
+
+  // Show auth loading
+  if (authLoading) {
+    return (
+      <div className="app loading-screen">
+        <div className="loading-content">
+          <div className="loading-spinner"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login/register if not authenticated
+  if (!isAuthenticated) {
+    return <AuthPages theme={state.theme} onToggleTheme={handleToggleTheme} />;
   }
 
   if (isLoading) {
@@ -217,6 +218,8 @@ function App() {
         onSearchChange={handleSearchChange}
         theme={state.theme}
         onToggleTheme={handleToggleTheme}
+        userName={user?.name}
+        onLogout={logout}
       />
       <PostEditor
         post={selectedPost}
@@ -237,6 +240,14 @@ function App() {
         }}
       />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }
 

@@ -94,7 +94,7 @@ const STATUS_CONFIG: Record<PostStatus, { label: string; icon: React.ReactNode }
 
 interface PostEditorProps {
     post: Post | null;
-    onSave: (post: Partial<Post>) => void;
+    onSave: (post: Post) => void;
     onDelete: (id: string) => void;
     onTogglePin: (id: string) => void;
     onToggleStatus: (id: string) => void;
@@ -136,7 +136,7 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
     useEffect(() => {
         if (post && (title !== post.title || content !== post.content || JSON.stringify(tags) !== JSON.stringify(post.tags))) {
             const timer = setTimeout(() => {
-                onSave({ id: post.id, title, content, tags });
+                onSave({ ...post, title, content, tags });
             }, 500);
             return () => clearTimeout(timer);
         }

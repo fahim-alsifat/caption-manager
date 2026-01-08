@@ -1,27 +1,29 @@
 import { connectDB } from '../lib/mongodb.js';
 import Post from '../lib/models/Post.js';
+import { authenticateRequest } from '../lib/auth.js';
 
 export default async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    // Authenticate user
+    const userId = await authenticateRequest(req, res);
+    if (!userId) return; // Response already sent
 
     const { id } = req.query;
 
     await connectDB();
 
     try {
-        if (req.method === 'PUT') {
-            const post = await Post.findById(id);
-            if (!post) {
-                return res.status(404).json({ message: 'Post not found' });
-            }
+        // Find post and verify ownership
+        const post = await Post.findById(id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
 
+        // Check if user owns this post
+        if (post.userId.toString() !== userId) {
+            return res.status(403).json({ message: 'You do not have permission to modify this post' });
+        }
+
+        if (req.method === 'PUT') {
             const { title, content, status, isPinned, tags, order } = req.body;
             if (title !== undefined) post.title = title;
             if (content !== undefined) post.content = content;
@@ -46,10 +48,7 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'DELETE') {
-            const post = await Post.findByIdAndDelete(id);
-            if (!post) {
-                return res.status(404).json({ message: 'Post not found' });
-            }
+            await Post.findByIdAndDelete(id);
             return res.status(200).json({ message: 'Post deleted' });
         }
 

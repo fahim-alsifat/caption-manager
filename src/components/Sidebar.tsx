@@ -61,6 +61,13 @@ const Icons = {
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
+    ),
+    logout: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
     )
 };
 
@@ -75,6 +82,8 @@ interface SidebarProps {
     onSearchChange: (query: string) => void;
     theme: 'light' | 'dark';
     onToggleTheme: () => void;
+    userName?: string;
+    onLogout?: () => void;
 }
 
 export function Sidebar({
@@ -87,7 +96,9 @@ export function Sidebar({
     onFilterChange,
     onSearchChange,
     theme,
-    onToggleTheme
+    onToggleTheme,
+    userName,
+    onLogout
 }: SidebarProps) {
     const filteredPosts = posts
         .filter(post => {
@@ -213,6 +224,19 @@ export function Sidebar({
                     ))
                 )}
             </div>
+
+            {/* User Section */}
+            {userName && onLogout && (
+                <div className="sidebar-user-section">
+                    <div className="user-info">
+                        <div className="user-avatar">{userName.charAt(0).toUpperCase()}</div>
+                        <span className="user-name">{userName}</span>
+                    </div>
+                    <button className="logout-btn" onClick={onLogout} title="Logout">
+                        {Icons.logout}
+                    </button>
+                </div>
+            )}
         </aside>
     );
 }

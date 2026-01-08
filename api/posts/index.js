@@ -1,22 +1,18 @@
 import { connectDB } from '../lib/mongodb.js';
 import Post from '../lib/models/Post.js';
+import { authenticateRequest } from '../lib/auth.js';
 
 export default async function handler(req, res) {
-    // CORS headers
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    // Authenticate user
+    const userId = await authenticateRequest(req, res);
+    if (!userId) return; // Response already sent
 
     await connectDB();
 
     try {
         if (req.method === 'GET') {
-            const posts = await Post.find().sort({ isPinned: -1, order: 1, updatedAt: -1 });
+            // Get only posts belonging to this user
+            const posts = await Post.find({ userId }).sort({ isPinned: -1, order: 1, updatedAt: -1 });
             const transformedPosts = posts.map(post => ({
                 id: post._id.toString(),
                 title: post.title,
@@ -34,6 +30,7 @@ export default async function handler(req, res) {
         if (req.method === 'POST') {
             const { title, content, status, isPinned, tags, order } = req.body;
             const post = new Post({
+                userId, // Associate with authenticated user
                 title: title || '',
                 content: content || '',
                 status: status || 'pending',
