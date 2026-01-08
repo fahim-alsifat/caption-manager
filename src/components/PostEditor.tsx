@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Post, PostStatus } from '../types';
+import { shareApi } from '../utils/api';
 import { formatFullDate } from '../utils/storage';
 
 // SVG Icons
@@ -56,6 +57,26 @@ const Icons = {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
+    ),
+    share: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+    ),
+    link: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+        </svg>
+    ),
+    check: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
     )
 };
 
@@ -81,6 +102,11 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
     const [tags, setTags] = useState<string[]>([]);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showStatusMenu, setShowStatusMenu] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [shareLink, setShareLink] = useState<string | null>(null);
+    const [sharePermission, setSharePermission] = useState<'view' | 'edit'>('view');
+    const [isCreatingLink, setIsCreatingLink] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
     const titleRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const statusMenuRef = useRef<HTMLDivElement>(null);
@@ -93,6 +119,8 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
             setTagInput('');
             setShowDeleteConfirm(false);
             setShowStatusMenu(false);
+            setShowShareModal(false);
+            setShareLink(null);
         }
     }, [post?.id]);
 
@@ -169,6 +197,29 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
         setShowStatusMenu(false);
     };
 
+    const handleCreateShareLink = async () => {
+        if (!post) return;
+
+        setIsCreatingLink(true);
+        try {
+            const result = await shareApi.createLink(post.id, sharePermission);
+            const fullUrl = `${window.location.origin}/share/${result.linkId}`;
+            setShareLink(fullUrl);
+        } catch (error) {
+            console.error('Failed to create share link:', error);
+        } finally {
+            setIsCreatingLink(false);
+        }
+    };
+
+    const handleCopyShareLink = () => {
+        if (shareLink) {
+            navigator.clipboard.writeText(shareLink);
+            setLinkCopied(true);
+            setTimeout(() => setLinkCopied(false), 2000);
+        }
+    };
+
     if (!post) {
         return (
             <main className="editor-empty">
@@ -220,6 +271,14 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
                             </div>
                         )}
                     </div>
+
+                    <button
+                        className="action-btn share-btn"
+                        onClick={() => setShowShareModal(true)}
+                        title="Share caption"
+                    >
+                        {Icons.share} Share
+                    </button>
 
                     <button
                         className="action-btn copy-btn"
@@ -294,6 +353,7 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
                 </div>
             </div>
 
+            {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
                 <div className="delete-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
                     <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
@@ -310,7 +370,88 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
                     </div>
                 </div>
             )}
+
+            {/* Share Modal */}
+            {showShareModal && (
+                <div className="delete-modal-overlay" onClick={() => setShowShareModal(false)}>
+                    <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+                        <h3>{Icons.share} Share Caption</h3>
+
+                        {!shareLink ? (
+                            <>
+                                <div className="share-options">
+                                    <label className="share-option">
+                                        <input
+                                            type="radio"
+                                            name="permission"
+                                            value="view"
+                                            checked={sharePermission === 'view'}
+                                            onChange={() => setSharePermission('view')}
+                                        />
+                                        <div className="share-option-content">
+                                            <strong>View only</strong>
+                                            <span>Others can only view this caption</span>
+                                        </div>
+                                    </label>
+                                    <label className="share-option">
+                                        <input
+                                            type="radio"
+                                            name="permission"
+                                            value="edit"
+                                            checked={sharePermission === 'edit'}
+                                            onChange={() => setSharePermission('edit')}
+                                        />
+                                        <div className="share-option-content">
+                                            <strong>Can edit</strong>
+                                            <span>Others can view and edit this caption</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div className="share-modal-actions">
+                                    <button className="cancel-btn" onClick={() => setShowShareModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button
+                                        className="create-link-btn"
+                                        onClick={handleCreateShareLink}
+                                        disabled={isCreatingLink}
+                                    >
+                                        {isCreatingLink ? 'Creating...' : 'Create Link'}
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="share-link-result">
+                                    <div className="share-link-box">
+                                        {Icons.link}
+                                        <input
+                                            type="text"
+                                            value={shareLink}
+                                            readOnly
+                                            onClick={(e) => (e.target as HTMLInputElement).select()}
+                                        />
+                                    </div>
+                                    <p className="share-link-permission">
+                                        Permission: <strong>{sharePermission === 'view' ? 'View only' : 'Can edit'}</strong>
+                                    </p>
+                                </div>
+                                <div className="share-modal-actions">
+                                    <button className="cancel-btn" onClick={() => setShowShareModal(false)}>
+                                        Close
+                                    </button>
+                                    <button
+                                        className={`copy-link-btn ${linkCopied ? 'copied' : ''}`}
+                                        onClick={handleCopyShareLink}
+                                    >
+                                        {linkCopied ? <>{Icons.check} Copied!</> : <>{Icons.copy} Copy Link</>}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
-
