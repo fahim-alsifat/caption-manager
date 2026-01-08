@@ -83,5 +83,22 @@ export const shareApi = {
             throw new Error('Failed to update shared post');
         }
         return response.json();
+    },
+
+    updateLinkPermission: async (linkId: string, permission: 'view' | 'edit'): Promise<{ linkId: string; permission: string }> => {
+        const response = await fetch(`${API_BASE}/share/${linkId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ permission })
+        });
+        if (!response.ok) throw new Error('Failed to update permission');
+        return response.json();
+    },
+
+    deleteLink: async (linkId: string): Promise<void> => {
+        const response = await fetch(`${API_BASE}/share/${linkId}`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) throw new Error('Failed to delete link');
     }
 };

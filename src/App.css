@@ -1247,3 +1247,67 @@
     font-size: var(--text-sm);
     color: var(--text-muted);
 }
+
+/* ========================
+   Permission Toggle
+   ======================== */
+.permission-toggle {
+    margin-top: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.permission-label {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.toggle-buttons {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    flex: 1;
+    justify-content: center;
+}
+
+.toggle-btn:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+.toggle-btn.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+    color: white;
+}
+
+.toggle-btn.active svg {
+    stroke: white;
+}
+
+.toggle-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.updating-text {
+    font-size: var(--text-xs);
+    color: var(--accent-warning);
+    animation: pulse 1s infinite;
+}

@@ -77,6 +77,12 @@ const Icons = {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
+    ),
+    lock: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
     )
 };
 
@@ -104,9 +110,11 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
     const [showStatusMenu, setShowStatusMenu] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
     const [shareLink, setShareLink] = useState<string | null>(null);
+    const [shareLinkId, setShareLinkId] = useState<string | null>(null);
     const [sharePermission, setSharePermission] = useState<'view' | 'edit'>('view');
     const [isCreatingLink, setIsCreatingLink] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
+    const [isUpdatingPermission, setIsUpdatingPermission] = useState(false);
     const titleRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const statusMenuRef = useRef<HTMLDivElement>(null);
@@ -121,6 +129,7 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
             setShowStatusMenu(false);
             setShowShareModal(false);
             setShareLink(null);
+            setShareLinkId(null);
         }
     }, [post?.id]);
 
@@ -205,6 +214,7 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
             const result = await shareApi.createLink(post.id, sharePermission);
             const fullUrl = `${window.location.origin}/share/${result.linkId}`;
             setShareLink(fullUrl);
+            setShareLinkId(result.linkId);
         } catch (error) {
             console.error('Failed to create share link:', error);
         } finally {
@@ -217,6 +227,20 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
             navigator.clipboard.writeText(shareLink);
             setLinkCopied(true);
             setTimeout(() => setLinkCopied(false), 2000);
+        }
+    };
+
+    const handleChangePermission = async (newPermission: 'view' | 'edit') => {
+        if (!shareLinkId || newPermission === sharePermission) return;
+
+        setIsUpdatingPermission(true);
+        try {
+            await shareApi.updateLinkPermission(shareLinkId, newPermission);
+            setSharePermission(newPermission);
+        } catch (error) {
+            console.error('Failed to update permission:', error);
+        } finally {
+            setIsUpdatingPermission(false);
         }
     };
 
@@ -432,9 +456,28 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
                                             onClick={(e) => (e.target as HTMLInputElement).select()}
                                         />
                                     </div>
-                                    <p className="share-link-permission">
-                                        Permission: <strong>{sharePermission === 'view' ? 'View only' : 'Can edit'}</strong>
-                                    </p>
+
+                                    {/* Permission Toggle */}
+                                    <div className="permission-toggle">
+                                        <span className="permission-label">Permission:</span>
+                                        <div className="toggle-buttons">
+                                            <button
+                                                className={`toggle-btn ${sharePermission === 'view' ? 'active' : ''}`}
+                                                onClick={() => handleChangePermission('view')}
+                                                disabled={isUpdatingPermission}
+                                            >
+                                                {Icons.lock} View only
+                                            </button>
+                                            <button
+                                                className={`toggle-btn ${sharePermission === 'edit' ? 'active' : ''}`}
+                                                onClick={() => handleChangePermission('edit')}
+                                                disabled={isUpdatingPermission}
+                                            >
+                                                {Icons.edit} Can edit
+                                            </button>
+                                        </div>
+                                        {isUpdatingPermission && <span className="updating-text">Updating...</span>}
+                                    </div>
                                 </div>
                                 <div className="share-modal-actions">
                                     <button className="cancel-btn" onClick={() => setShowShareModal(false)}>

@@ -56,6 +56,20 @@ export default async function handler(req, res) {
                 return res.status(404).json({ message: 'Shared link not found' });
             }
 
+            // Check if this is a permission update request
+            if (req.body.permission && (req.body.permission === 'view' || req.body.permission === 'edit')) {
+                // Update the permission of the share link itself
+                sharedLink.permission = req.body.permission;
+                await sharedLink.save();
+
+                return res.status(200).json({
+                    linkId: sharedLink.linkId,
+                    permission: sharedLink.permission,
+                    message: 'Permission updated successfully'
+                });
+            }
+
+            // Otherwise, this is a post content update (edit mode)
             if (sharedLink.permission !== 'edit') {
                 return res.status(403).json({ message: 'You do not have permission to edit' });
             }
@@ -89,6 +103,17 @@ export default async function handler(req, res) {
                 createdAt: post.createdAt.toISOString(),
                 updatedAt: post.updatedAt.toISOString()
             });
+        }
+
+        // DELETE - remove the share link
+        if (req.method === 'DELETE') {
+            const sharedLink = await SharedLink.findOneAndDelete({ linkId });
+
+            if (!sharedLink) {
+                return res.status(404).json({ message: 'Shared link not found' });
+            }
+
+            return res.status(200).json({ message: 'Share link deleted' });
         }
 
         return res.status(405).json({ message: 'Method not allowed' });
