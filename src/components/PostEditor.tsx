@@ -401,97 +401,103 @@ export function PostEditor({ post, onSave, onDelete, onTogglePin, onToggleStatus
                     <div className="share-modal" onClick={(e) => e.stopPropagation()}>
                         <h3>{Icons.share} Share Caption</h3>
 
-                        {!shareLink ? (
-                            <>
-                                <div className="share-options">
-                                    <label className="share-option">
-                                        <input
-                                            type="radio"
-                                            name="permission"
-                                            value="view"
-                                            checked={sharePermission === 'view'}
-                                            onChange={() => setSharePermission('view')}
-                                        />
-                                        <div className="share-option-content">
-                                            <strong>View only</strong>
-                                            <span>Others can only view this caption</span>
-                                        </div>
-                                    </label>
-                                    <label className="share-option">
-                                        <input
-                                            type="radio"
-                                            name="permission"
-                                            value="edit"
-                                            checked={sharePermission === 'edit'}
-                                            onChange={() => setSharePermission('edit')}
-                                        />
-                                        <div className="share-option-content">
-                                            <strong>Can edit</strong>
-                                            <span>Others can view and edit this caption</span>
-                                        </div>
-                                    </label>
-                                </div>
-                                <div className="share-modal-actions">
-                                    <button className="cancel-btn" onClick={() => setShowShareModal(false)}>
-                                        Cancel
-                                    </button>
-                                    <button
-                                        className="create-link-btn"
-                                        onClick={handleCreateShareLink}
-                                        disabled={isCreatingLink}
-                                    >
-                                        {isCreatingLink ? 'Creating...' : 'Create Link'}
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="share-link-result">
-                                    <div className="share-link-box">
-                                        {Icons.link}
-                                        <input
-                                            type="text"
-                                            value={shareLink}
-                                            readOnly
-                                            onClick={(e) => (e.target as HTMLInputElement).select()}
-                                        />
+                        <div className="share-modal-body">
+                            {!shareLink ? (
+                                <>
+                                    <div className="share-options">
+                                        <label className="share-option">
+                                            <input
+                                                type="radio"
+                                                name="permission"
+                                                value="view"
+                                                checked={sharePermission === 'view'}
+                                                onChange={() => setSharePermission('view')}
+                                            />
+                                            <div className="share-option-icon">{Icons.lock}</div>
+                                            <div className="share-option-content">
+                                                <strong>View only</strong>
+                                                <span>Others can only view this caption</span>
+                                            </div>
+                                            <div className="share-option-check"></div>
+                                        </label>
+                                        <label className="share-option">
+                                            <input
+                                                type="radio"
+                                                name="permission"
+                                                value="edit"
+                                                checked={sharePermission === 'edit'}
+                                                onChange={() => setSharePermission('edit')}
+                                            />
+                                            <div className="share-option-icon">{Icons.edit}</div>
+                                            <div className="share-option-content">
+                                                <strong>Can edit</strong>
+                                                <span>Others can view and edit this caption</span>
+                                            </div>
+                                            <div className="share-option-check"></div>
+                                        </label>
                                     </div>
+                                    <div className="share-modal-actions">
+                                        <button className="cancel-btn" onClick={() => setShowShareModal(false)}>
+                                            Cancel
+                                        </button>
+                                        <button
+                                            className="create-link-btn"
+                                            onClick={handleCreateShareLink}
+                                            disabled={isCreatingLink}
+                                        >
+                                            {isCreatingLink ? 'Creating...' : 'Create Link'}
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="share-link-result">
+                                        <div className="share-link-box">
+                                            {Icons.link}
+                                            <input
+                                                type="text"
+                                                value={shareLink}
+                                                readOnly
+                                                onClick={(e) => (e.target as HTMLInputElement).select()}
+                                            />
+                                        </div>
 
-                                    {/* Permission Toggle */}
-                                    <div className="permission-toggle">
-                                        <span className="permission-label">Permission:</span>
-                                        <div className="toggle-buttons">
-                                            <button
-                                                className={`toggle-btn ${sharePermission === 'view' ? 'active' : ''}`}
-                                                onClick={() => handleChangePermission('view')}
-                                                disabled={isUpdatingPermission}
-                                            >
-                                                {Icons.lock} View only
-                                            </button>
-                                            <button
-                                                className={`toggle-btn ${sharePermission === 'edit' ? 'active' : ''}`}
-                                                onClick={() => handleChangePermission('edit')}
-                                                disabled={isUpdatingPermission}
-                                            >
-                                                {Icons.edit} Can edit
-                                            </button>
+                                        {/* Permission Toggle */}
+                                        <div className="permission-toggle">
+                                            <span className="permission-label">Permission:</span>
+                                            <div className="toggle-buttons">
+                                                <button
+                                                    className={`toggle-btn ${sharePermission === 'view' ? 'active' : ''}`}
+                                                    onClick={() => handleChangePermission('view')}
+                                                    disabled={isUpdatingPermission}
+                                                >
+                                                    {Icons.lock} View only
+                                                </button>
+                                                <button
+                                                    className={`toggle-btn ${sharePermission === 'edit' ? 'active' : ''}`}
+                                                    onClick={() => handleChangePermission('edit')}
+                                                    disabled={isUpdatingPermission}
+                                                >
+                                                    {Icons.edit} Can edit
+                                                </button>
+                                            </div>
+                                            {isUpdatingPermission && <span className="updating-text">Updating...</span>}
                                         </div>
-                                        {isUpdatingPermission && <span className="updating-text">Updating...</span>}
                                     </div>
-                                </div>
-                                <div className="share-modal-actions">
-                                    <button className="cancel-btn" onClick={() => setShowShareModal(false)}>
-                                        Close
-                                    </button>
-                                    <button
-                                        className={`copy-link-btn ${linkCopied ? 'copied' : ''}`}
-                                        onClick={handleCopyShareLink}
-                                    >
-                                        {linkCopied ? <>{Icons.check} Copied!</> : <>{Icons.copy} Copy Link</>}
-                                    </button>
-                                </div>
-                            </>
-                        )}
+                                    <div className="share-modal-actions">
+                                        <button className="cancel-btn" onClick={() => setShowShareModal(false)}>
+                                            Close
+                                        </button>
+                                        <button
+                                            className={`copy-link-btn ${linkCopied ? 'copied' : ''}`}
+                                            onClick={handleCopyShareLink}
+                                        >
+                                            {linkCopied ? <>{Icons.check} Copied!</> : <>{Icons.copy} Copy Link</>}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

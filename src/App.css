@@ -874,25 +874,34 @@
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    max-width: 450px;
+    padding: 0;
+    max-width: 480px;
     width: 90%;
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--shadow-xl), 0 0 60px rgba(99, 102, 241, 0.15);
     animation: scaleIn var(--transition-spring);
+    overflow: hidden;
 }
 
 .share-modal h3 {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    font-size: var(--text-lg);
-    font-weight: 600;
-    margin-bottom: var(--space-5);
-    color: var(--text-primary);
+    gap: var(--space-3);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    margin: 0;
+    padding: var(--space-5) var(--space-6);
+    color: white;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
 }
 
 .share-modal h3 svg {
-    stroke: var(--accent-primary);
+    stroke: white;
+    width: 22px;
+    height: 22px;
+}
+
+.share-modal-body {
+    padding: var(--space-6);
 }
 
 .share-options {
@@ -904,34 +913,73 @@
 
 .share-option {
     display: flex;
-    align-items: flex-start;
-    gap: var(--space-3);
-    padding: var(--space-4);
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
     background: var(--bg-secondary);
     border: 2px solid var(--border-color);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     cursor: pointer;
     transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.share-option::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    opacity: 0;
+    transition: opacity var(--transition-fast);
 }
 
 .share-option:hover {
     border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.share-option:hover::before {
+    opacity: 1;
 }
 
 .share-option input[type="radio"] {
-    margin-top: 3px;
-    accent-color: var(--accent-primary);
+    display: none;
+}
+
+.share-option-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-tertiary);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.share-option-icon svg {
+    stroke: var(--text-muted);
+    width: 20px;
+    height: 20px;
 }
 
 .share-option-content {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+    flex: 1;
+    position: relative;
+    z-index: 1;
 }
 
 .share-option-content strong {
     color: var(--text-primary);
     font-weight: 600;
+    font-size: var(--text-base);
 }
 
 .share-option-content span {
@@ -939,15 +987,55 @@
     color: var(--text-secondary);
 }
 
+.share-option-check {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    transition: all var(--transition-fast);
+}
+
 .share-option:has(input:checked) {
     border-color: var(--accent-primary);
-    background: rgba(99, 102, 241, 0.1);
+    background: var(--bg-secondary);
+}
+
+.share-option:has(input:checked)::before {
+    opacity: 1;
+}
+
+.share-option:has(input:checked) .share-option-icon {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+.share-option:has(input:checked) .share-option-icon svg {
+    stroke: white;
+}
+
+.share-option:has(input:checked) .share-option-check {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+}
+
+.share-option:has(input:checked) .share-option-check::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
 }
 
 .share-modal-actions {
     display: flex;
     gap: var(--space-3);
     justify-content: flex-end;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-color);
 }
 
 .create-link-btn,
@@ -955,33 +1043,54 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-2) var(--space-4);
+    padding: var(--space-3) var(--space-5);
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     color: white;
+    font-size: var(--text-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.create-link-btn:hover,
+.copy-link-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+}
+
+.create-link-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.copy-link-btn.copied {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.copy-link-btn svg {
+    stroke: white;
+}
+
+.cancel-btn {
+    padding: var(--space-3) var(--space-5);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
     font-size: var(--text-base);
     font-weight: 500;
     cursor: pointer;
     transition: all var(--transition-fast);
 }
 
-.create-link-btn:hover,
-.copy-link-btn:hover {
-    filter: brightness(1.1);
-}
-
-.create-link-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.copy-link-btn.copied {
-    background: var(--accent-success);
-}
-
-.copy-link-btn svg {
-    stroke: white;
+.cancel-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 /* Share Link Result */
@@ -992,12 +1101,12 @@
 .share-link-box {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-2);
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
 }
 
 .share-link-box svg {
@@ -1011,7 +1120,7 @@
     border: none;
     color: var(--text-primary);
     font-size: var(--text-sm);
-    font-family: monospace;
+    font-family: 'SF Mono', 'Consolas', monospace;
 }
 
 .share-link-box input:focus {
@@ -1088,9 +1197,11 @@
    ======================== */
 .shared-view-container {
     min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     background: var(--bg-primary);
+    overflow: hidden;
 }
 
 .shared-view-header {
@@ -1098,9 +1209,12 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--space-4) var(--space-6);
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .shared-view-info {
@@ -1113,20 +1227,23 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-2) var(--space-4);
     border-radius: var(--radius-full);
     font-size: var(--text-sm);
-    font-weight: 500;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
 }
 
 .permission-badge.view {
-    background: rgba(107, 114, 128, 0.2);
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.3), rgba(75, 85, 99, 0.3));
     color: var(--text-secondary);
+    border: 1px solid rgba(107, 114, 128, 0.3);
 }
 
 .permission-badge.edit {
-    background: rgba(99, 102, 241, 0.2);
-    color: #818cf8;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+    color: #a78bfa;
+    border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 .permission-badge svg {
@@ -1138,6 +1255,9 @@
     font-size: var(--text-sm);
     color: var(--accent-warning);
     animation: pulse 1s infinite;
+    background: rgba(255, 149, 0, 0.15);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
 }
 
 @keyframes pulse {
@@ -1164,6 +1284,7 @@
     margin: 0 auto;
     width: 100%;
     padding: var(--space-8) var(--space-6);
+    overflow-y: auto;
 }
 
 .shared-title {
