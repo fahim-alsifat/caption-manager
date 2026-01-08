@@ -1,6 +1,7 @@
 import type { Post } from '../types';
 
-const API_BASE = 'http://localhost:5000/api';
+// Use relative path - works on both localhost and Vercel production
+const API_BASE = '/api';
 
 // Posts API
 export const postsApi = {
